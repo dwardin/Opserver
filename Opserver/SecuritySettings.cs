@@ -29,6 +29,9 @@ namespace StackExchange.Opserver
         [ConfigurationProperty("apiKey"), DefaultValue("")]
         public string ApiKey => this["apiKey"] as string ?? "";
 
+        [ConfigurationProperty("admins"), DefaultValue("")]
+        public string Admins => this["admins"] as string ?? "";
+
         [ConfigurationProperty("InternalNetworks")]
         public SettingsCollection<Network> InternalNetworks => this["InternalNetworks"] as SettingsCollection<Network>;
 
