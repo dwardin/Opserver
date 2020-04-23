@@ -23,6 +23,7 @@ namespace Opserver.Security
         /// Semilcolon delimited list of security groups that can do anything, including management actions
         /// </summary>
         public string AdminEverythingGroups { get; set; }
+        public string Admins { get; set; }
 
         public class Network
         {
