@@ -256,7 +256,8 @@ Top Users:
                                 @foreach (var v in volumes.OrderBy(v => v.VolumeId))
                                 {
                                     var percentUsed = 100 * (v.TotalBytes - v.AvailableBytes) / (float)v.TotalBytes;
-                                    <div class="value-block col-md-@(volumes.Count == 1 ? "12" : "6") col-sm-6" title="@v.VolumeMountPoint.ToUpper() - @v.LogicalVolumeName
+                                    <div class="value-block col-md-@(volumes.Count == 1 ? "12" : "6") col-sm-6" 
+                                         title="
 Total: @v.TotalBytes.ToComma() bytes (@v.TotalBytes.ToSize())
 Used: @v.UsedBytes.ToComma() bytes (@v.UsedBytes.ToSize())
 Free: @v.AvailableBytes.ToComma() bytes (@v.AvailableBytes.ToSize())
@@ -266,7 +267,7 @@ Average Write Stall: @v.AvgWriteStallMs.ToString(CultureInfo.CurrentCulture) ms"
                                             <div class="progress-bar" style="width: @percentUsed.ToString(CultureInfo.InvariantCulture)%;"></div>
                                             <span>@((v.TotalBytes - v.AvailableBytes).ToSize()) / @v.TotalBytes.ToSize() <span class="smaller">(@v.AvailableBytes.ToSize() free)</span></span>
                                         </div>
-                                        <label>@v.VolumeMountPoint.ToUpper() @v.LogicalVolumeName</label>
+                                        <label>@v.VolumeMountPoint @v.LogicalVolumeName</label>
                                     </div>
                                 }
                             </div>
