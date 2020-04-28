@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Nest;
 using Opserver.Data;
 using Opserver.Data.SQL;
 using Opserver.Poller.Services;
@@ -13,6 +14,25 @@ namespace Opserver.Poller
     class Program
     {
         static async Task Main(string[] args)
+        {
+            var serviceProvider = CreateServiceProvider();
+
+            var ps = serviceProvider.GetService<PollingService>();
+            await ps.StartAsync(new CancellationToken());
+            var sqlPoller = serviceProvider.GetService<PollSql>();
+
+
+            Console.WriteLine("polling");
+            sqlPoller.ObserveAllInstances();
+ 
+            ConsoleKey cc;
+            do
+            {
+                cc = Console.ReadKey().Key;
+            } while (cc != ConsoleKey.Escape);
+        }
+
+        private static ServiceProvider CreateServiceProvider()
         {
             IConfiguration config = new ConfigurationBuilder()
                 .AddJsonFile("appSettings.json", optional: true, reloadOnChange: true)
@@ -26,29 +46,34 @@ namespace Opserver.Poller
                 .AddCoreOpserverServices(config)
                 .AddStatusModules()
                 .AddSingleton<PollSql, PollSql>()
-                .AddSingleton<IConfiguration>(config)
+                .AddSingleton(config)
+                .AddElasticSearch(config)
                 .BuildServiceProvider();
+            return serviceProvider;
+        }
+    }
 
-            // var sqlModule = new SQLModule(config, serviceProvider.GetService<PollingService>());
-            var sqlModule = serviceProvider.GetService<SQLModule>();
+    public static class ElasticsearchExtensions
+    {
+        public static IServiceCollection AddElasticSearch(
+            this IServiceCollection services, IConfiguration configuration)
+        {
+            var url = configuration["elasticsearch:url"];
+            var defaultIndex = configuration["elasticsearch:index"];
 
-            var ps = serviceProvider.GetService<PollingService>();
-            await ps.StartAsync(new CancellationToken());
-            while (true)
-            {
-                Console.WriteLine("polling");
+            var settings = new ConnectionSettings(new Uri(url))
+                .DefaultIndex(defaultIndex)
+                .EnableDebugMode();
+            // .DefaultMappingFor<Person>(m => m
+            // .Ignore(p => p.FirstName)
+            // .PropertyName(p => p.Id, "id")
+            // );
 
-                if (sqlModule.AllInstances.First().ServerProperties.Data == null)
-                {
-                    Console.WriteLine("Waiting for data");
-                    Thread.Sleep(1000);
-                    continue;
-                }
+            var client = new ElasticClient(settings);
 
-                Console.WriteLine(sqlModule.AllInstances.First().ServerProperties.Data.ConnectionCount);
-                Thread.Sleep(1000);
-                // Console.ReadKey(); // != ConsoleKey.Escape;
-            }
+            services.AddSingleton<IElasticClient>(client);
+
+            return services;
         }
     }
 }

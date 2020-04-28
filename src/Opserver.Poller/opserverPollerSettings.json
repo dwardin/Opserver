@@ -1,14 +1,18 @@
 ﻿{
+  "elasticsearch": {
+    "index": "mssqlmonitor-1",
+    "url": "http://elastic:changeme@localhost:9200/"
+  },
   "Modules": {
     /* Configuration for the SQL Server dashboard */
     "Sql": {
       "defaultConnectionString": "Data Source=$ServerName$;Initial Catalog=master;Integrated Security=SSPI;",
-      "refreshIntervalSeconds": 30,
+      "refreshIntervalSeconds": 60,
       "instances": [
         {
           "name": "Docker_2017",
           "connectionString": "Server=127.0.0.1,15591;  Database=get_loaded;   User Id=SA;   Password=Your_password123",
-          "refreshIntervalSeconds": 1
+          "refreshIntervalSeconds": 15
         }
       ]
     },
@@ -17,7 +21,7 @@
       //"Servers": [
       //  {
       //    "name": "localhost",
-      //    "instances": [
+      //    "instances": [Non-Page Latch
       //      {
       //        "name": "Default",
       //        "port": 6379
