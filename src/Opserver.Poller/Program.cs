@@ -1,12 +1,10 @@
 ﻿using System;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Nest;
 using Opserver.Data;
-using Opserver.Data.SQL;
 using Opserver.Poller.Services;
 
 namespace Opserver.Poller
@@ -19,12 +17,12 @@ namespace Opserver.Poller
 
             var ps = serviceProvider.GetService<PollingService>();
             await ps.StartAsync(new CancellationToken());
-            var sqlPoller = serviceProvider.GetService<PollSql>();
+            var sqlPoller = serviceProvider.GetService<IPollSql>();
 
 
             Console.WriteLine("polling");
             sqlPoller.ObserveAllInstances();
- 
+
             ConsoleKey cc;
             do
             {
@@ -45,7 +43,7 @@ namespace Opserver.Poller
                 .AddMemoryCache()
                 .AddCoreOpserverServices(config)
                 .AddStatusModules()
-                .AddSingleton<PollSql, PollSql>()
+                .AddSingleton<IPollSql, PollSql>()
                 .AddSingleton(config)
                 .AddElasticSearch(config)
                 .BuildServiceProvider();
@@ -61,13 +59,13 @@ namespace Opserver.Poller
             var url = configuration["elasticsearch:url"];
             var defaultIndex = configuration["elasticsearch:index"];
 
+            defaultIndex += DateTime.Now.ToString("MMdd-HHmm");
+
+            Console.WriteLine(defaultIndex);
+
             var settings = new ConnectionSettings(new Uri(url))
                 .DefaultIndex(defaultIndex)
                 .EnableDebugMode();
-            // .DefaultMappingFor<Person>(m => m
-            // .Ignore(p => p.FirstName)
-            // .PropertyName(p => p.Id, "id")
-            // );
 
             var client = new ElasticClient(settings);
 
