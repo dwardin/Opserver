@@ -64,6 +64,7 @@ namespace Opserver.Poller.Services
                 WaitsPerSec = GetWaits(sqlInstance),
             };
 
+
             var indexResponse = _elasticClient.IndexDocument(esDoc);
 
             if (indexResponse == null)
