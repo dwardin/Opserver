@@ -1,0 +1,7 @@
+version: "3"
+services:
+    poller:
+      build: .
+      tty: true
+      env_file:
+        - .env

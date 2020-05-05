@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Nest;
 using Opserver.Data;
 using Opserver.Poller.Services;
@@ -19,8 +20,6 @@ namespace Opserver.Poller
             await ps.StartAsync(new CancellationToken());
             var sqlPoller = serviceProvider.GetService<IPollSql>();
 
-
-            Console.WriteLine("polling");
             sqlPoller.ObserveAllInstances();
 
             ConsoleKey cc;
@@ -36,17 +35,18 @@ namespace Opserver.Poller
                 .AddJsonFile("appSettings.json", optional: true, reloadOnChange: true)
                 .AddJsonFile("opserverPollerSettings.json", optional: false, reloadOnChange: true)
                 .AddJsonFile("localSettings.json", optional: true, reloadOnChange: true)
+                .AddEnvironmentVariables()
                 .Build();
 
             var serviceProvider = new ServiceCollection()
-                .AddLogging()
+                .AddLogging(builder => builder.AddConsole())
                 .AddMemoryCache()
-                .AddCoreOpserverServices(config)
-                .AddStatusModules()
-                .AddSingleton<IPollSql, PollSql>()
                 .AddSingleton(config)
+                .AddCoreOpserverServices(config)
+                .AddSingleton<IPollSql, PollSql>()
                 .AddElasticSearch(config)
                 .BuildServiceProvider();
+
             return serviceProvider;
         }
     }
@@ -57,11 +57,12 @@ namespace Opserver.Poller
             this IServiceCollection services, IConfiguration configuration)
         {
             var url = configuration["elasticsearch:url"];
+
             var defaultIndex = configuration["elasticsearch:index"];
 
-            defaultIndex += DateTime.Now.ToString("MMdd-HHmm");
+            // Console.WriteLine(configuration["elasticsearch"].ToJson());
 
-            Console.WriteLine(defaultIndex);
+            defaultIndex += DateTime.Now.ToString("MMdd-HHmm");
 
             var settings = new ConnectionSettings(new Uri(url))
                 .DefaultIndex(defaultIndex)

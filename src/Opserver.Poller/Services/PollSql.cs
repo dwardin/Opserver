@@ -31,9 +31,10 @@ namespace Opserver.Poller.Services
         {
             var sqlInstances = _sqlModule.AllInstances;
 
+            _logger.LogInformation($"Observing {sqlInstances.Count} instances");
             foreach (var sqlInstance in sqlInstances)
             {
-                _logger.LogInformation("Observing " + sqlInstance.Name);
+                _logger.LogInformation("Observing " + sqlInstance.Name + sqlInstance);
                 sqlInstance.Polled += SqlInstanceOnMonitorStatusChanged;
             }
         }
@@ -48,7 +49,7 @@ namespace Opserver.Poller.Services
 
             if (sqlInstance.ServerProperties.Data == null)
             {
-                _logger.LogWarning($"No ServerProperties data for ${sqlInstance.Name} skipping ");
+                _logger.LogWarning($"No ServerProperties data for {sqlInstance.Name} skipping");
             }
 
             var esDoc = new SqlMetricBeat()
@@ -73,7 +74,12 @@ namespace Opserver.Poller.Services
                 return;
             }
 
-            _logger.LogDebug($"ES: Result:{indexResponse.Result}, seqNo:{indexResponse.SequenceNumber}");
+            if (!indexResponse.IsValid)
+            {
+                _logger.LogWarning(indexResponse.ToString());
+            }
+
+            _logger.LogInformation($"{sqlInstance.Name}: ES Result:{indexResponse.Result}, seqNo:{indexResponse.SequenceNumber}", sqlInstance);
         }
 
         private static Dictionary<string, object> GetStats(SQLInstance i)
