@@ -9,7 +9,7 @@ namespace Opserver.Poller.Models
         public DateTime Timestamp { get; set; }
         public string InstanceName { get; set; }
         public string MachineName { get; set; }
-        public double Uptime { get ; set; }
+        public double? Uptime { get ; set; }
         public string Version { get; set; }
 
         public Dictionary<string, object> Stats { get; set; } = new Dictionary<string, object>();

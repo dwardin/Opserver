@@ -12,7 +12,7 @@ namespace Opserver.Poller
 {
     class Program
     {
-        static async Task Main(string[] args)
+        private static async Task Main(string[] args)
         {
             var serviceProvider = CreateServiceProvider();
 
@@ -22,12 +22,14 @@ namespace Opserver.Poller
 
             sqlPoller.ObserveAllInstances();
 
-            ConsoleKey cc;
             do
             {
-                cc = Console.ReadKey().Key;
-            } while (cc != ConsoleKey.Escape);
+                Thread.Sleep(2000);
+            } while (sqlPoller.IsActive());
+
+            Console.WriteLine(sqlPoller.GetStatusReason());
         }
+
 
         private static ServiceProvider CreateServiceProvider()
         {

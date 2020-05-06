@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Nest;
 using Opserver.Data;
@@ -12,6 +13,8 @@ namespace Opserver.Poller.Services
     public interface IPollSql
     {
         public void ObserveAllInstances();
+        public bool IsActive();
+        public string GetStatusReason();
     }
 
     public class PollSql : IPollSql
@@ -19,12 +22,16 @@ namespace Opserver.Poller.Services
         private readonly SQLModule _sqlModule;
         private readonly IElasticClient _elasticClient;
         private readonly ILogger<IPollSql> _logger;
+        private string StatusReason { get; set; }
+        private DateTime LastUpdateSuccess = DateTime.Now;
+        private int MaxInactivitySeconds { get; }
 
-        public PollSql(SQLModule sqlModule, IElasticClient elasticClient, ILogger<IPollSql> logger)
+        public PollSql(SQLModule sqlModule, IElasticClient elasticClient, ILogger<IPollSql> logger, IConfiguration config)
         {
             _sqlModule = sqlModule;
             _elasticClient = elasticClient;
             _logger = logger;
+            MaxInactivitySeconds = config.GetValue<int>("process:maxInactivitySeconds");
         }
 
         public void ObserveAllInstances()
@@ -39,6 +46,21 @@ namespace Opserver.Poller.Services
             }
         }
 
+        public bool IsActive()
+        {
+            _logger.LogDebug("Elapsed" + (DateTime.Now - LastUpdateSuccess).TotalSeconds);
+
+            if ((DateTime.Now - LastUpdateSuccess).TotalSeconds > MaxInactivitySeconds)
+            {
+                StatusReason = $"Maximum inactivity time {MaxInactivitySeconds} seconds exceeded, last success {LastUpdateSuccess}";
+                return false;
+            }
+
+            return true;
+        }
+
+        public string GetStatusReason() => StatusReason;
+
         private void SqlInstanceOnMonitorStatusChanged(object sender, PollNode.PollResultArgs a)
         {
             _logger.LogDebug("Polled");
@@ -49,15 +71,16 @@ namespace Opserver.Poller.Services
 
             if (sqlInstance.ServerProperties.Data == null)
             {
-                _logger.LogWarning($"No ServerProperties data for {sqlInstance.Name} skipping");
+                _logger.LogWarning($"No data for {sqlInstance.Name},  {sqlInstance.DataPollers.First().ErrorMessage}");
+                _logger.LogWarning(sqlInstance.DataPollers.First().ErrorMessage);
             }
 
             var esDoc = new SqlMetricBeat()
             {
                 InstanceName = sqlInstance.Name,
-                MachineName = sqlInstance.ServerProperties.Data.MachineName,
-                Uptime = (DateTime.UtcNow - sqlInstance.ServerProperties.Data.SQLServerStartTime).TotalSeconds,
-                Version = sqlInstance.ServerProperties.Data.Version,
+                MachineName = sqlInstance.ServerProperties.Data?.MachineName,
+                Uptime = (DateTime.UtcNow - sqlInstance.ServerProperties.Data?.SQLServerStartTime)?.TotalSeconds,
+                Version = sqlInstance.ServerProperties.Data?.Version,
                 Stats = GetStats(sqlInstance),
                 PerformancePerSec = GetPerformance(sqlInstance),
                 Memory = GetMemory(sqlInstance),
@@ -65,9 +88,7 @@ namespace Opserver.Poller.Services
                 WaitsPerSec = GetWaits(sqlInstance),
             };
 
-
             var indexResponse = _elasticClient.IndexDocument(esDoc);
-
             if (indexResponse == null)
             {
                 _logger.LogWarning("No response from ES");
@@ -79,8 +100,10 @@ namespace Opserver.Poller.Services
                 _logger.LogWarning(indexResponse.ToString());
             }
 
+            LastUpdateSuccess = DateTime.Now;
             _logger.LogInformation($"{sqlInstance.Name}: ES Result:{indexResponse.Result}, seqNo:{indexResponse.SequenceNumber}", sqlInstance);
         }
+
 
         private static Dictionary<string, object> GetStats(SQLInstance i)
         {

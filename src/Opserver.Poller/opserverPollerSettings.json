@@ -1,7 +1,11 @@
 ﻿{
+
   "elasticsearch": {
     "index": "mssqlmonitor-1",
     "url": "http://elastic:changeme@localhost:9200/"
+  },
+  "process": {
+    "maxInactivitySeconds": 20
   },
   "Modules": {
     /* Configuration for the SQL Server dashboard */
@@ -20,46 +24,6 @@
 //          "refreshIntervalSeconds": 120
 //        }
 //      ]
-    },
-    /* Configuration for the Redis dashboard */
-    "Redis": {
-      //"Servers": [
-      //  {
-      //    "name": "localhost",
-      //    "instances": [Non-Page Latch
-      //      {
-      //        "name": "Default",
-      //        "port": 6379
-      //      }
-      //    ]
-      //  }
-      //]
-    },
-    /* Configuration for the Elastic dashboard */
-    "Elastic": {
-      //"clusters": [
-      //  {
-      //    "name": "Local",
-      //    "nodes": [ "localhost" ]
-      //  }
-      //]
-    },
-    /* Configuration for the Exceptions dashboard */
-    "Exceptions": {
-      //"stores": [
-      //  {
-      //    "name": "Local",
-      //    "queryTimeoutMs": 2000,
-      //    "connectionString": "Server=.;Database=Local.Exceptions;Integrated Security=SSPI;"
-      //  }
-      //],
-      "stackTraceReplacements": [
-        {
-          "name": "github",
-          "pattern": "(?<= in )https?://raw.githubusercontent.com/([^/]+/)([^/]+/)([^/]+/)(.*?):line (\\d+)",
-          "replacement": "<a href=\"https://github.com/$1$2blob/$3$4#L$5\">$4:line $5</a>"
-        }
-      ]
     }
   }
 }
