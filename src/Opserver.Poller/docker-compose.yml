@@ -1,7 +1,7 @@
 version: "3"
 services:
     poller:
-      build: .
+      image: interactintranets/opserver-poller:latest
       tty: true
       env_file:
         - .env
