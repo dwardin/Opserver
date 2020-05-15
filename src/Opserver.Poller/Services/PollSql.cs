@@ -25,6 +25,7 @@ namespace Opserver.Poller.Services
         private string StatusReason { get; set; }
         private DateTime LastUpdateSuccess = DateTime.Now;
         private int MaxInactivitySeconds { get; }
+        public string PodName { get; set; }
 
         public PollSql(SQLModule sqlModule, IElasticClient elasticClient, ILogger<IPollSql> logger, IConfiguration config)
         {
@@ -32,7 +33,9 @@ namespace Opserver.Poller.Services
             _elasticClient = elasticClient;
             _logger = logger;
             MaxInactivitySeconds = config.GetValue<int>("process:maxInactivitySeconds");
+            PodName = config.GetValue<string>("elasticsearch:podName");
         }
+
 
         public void ObserveAllInstances()
         {
@@ -86,6 +89,7 @@ namespace Opserver.Poller.Services
                 Memory = GetMemory(sqlInstance),
                 Cache = GetCache(sqlInstance),
                 WaitsPerSec = GetWaits(sqlInstance),
+                PodName = PodName
             };
 
             var indexResponse = _elasticClient.IndexDocument(esDoc);

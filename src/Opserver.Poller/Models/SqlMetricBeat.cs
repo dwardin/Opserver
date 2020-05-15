@@ -12,6 +12,7 @@ namespace Opserver.Poller.Models
         public double? Uptime { get ; set; }
         public string Version { get; set; }
 
+        public string PodName { get; set; }
         public Dictionary<string, object> Stats { get; set; } = new Dictionary<string, object>();
         public Dictionary<string, object> PerformancePerSec { get; set; } = new Dictionary<string, object>();
         public Dictionary<string, object> Memory { get; set; } = new Dictionary<string, object>();

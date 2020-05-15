@@ -62,9 +62,7 @@ namespace Opserver.Poller
 
             var defaultIndex = configuration["elasticsearch:index"];
 
-            // Console.WriteLine(configuration["elasticsearch"].ToJson());
-
-            defaultIndex += DateTime.Now.ToString("MMdd-HHmm");
+            defaultIndex += DateTime.Now.ToString("-yyyy-MM-dd");
 
             var settings = new ConnectionSettings(new Uri(url))
                 .DefaultIndex(defaultIndex)

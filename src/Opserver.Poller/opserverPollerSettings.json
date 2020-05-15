@@ -1,7 +1,8 @@
 ﻿{
 
   "elasticsearch": {
-    "index": "mssqlmonitor-1",
+    "index": "mssqlmonitor",
+    "podName": "",
     "url": "http://elastic:changeme@localhost:9200/"
   },
   "process": {
