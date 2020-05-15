@@ -41,7 +41,7 @@ namespace Opserver.Poller.Services
             _logger.LogInformation($"Observing {sqlInstances.Count} instances");
             foreach (var sqlInstance in sqlInstances)
             {
-                _logger.LogInformation("Observing " + sqlInstance.Name + sqlInstance);
+                _logger.LogInformation("Observing " + sqlInstance.Name);
                 sqlInstance.Polled += SqlInstanceOnMonitorStatusChanged;
             }
         }

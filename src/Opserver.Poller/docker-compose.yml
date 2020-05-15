@@ -1,7 +1,8 @@
 version: "3"
 services:
     poller:
-      image: interactintranets/opserver-poller:latest
+      image: interactintranets/opserver-poller:1.0.10
+      network_mode: "host"
       tty: true
       env_file:
         - .env

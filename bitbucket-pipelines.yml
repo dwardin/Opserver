@@ -1,0 +1,19 @@
+image: node:10.15.3
+definitions:
+  services:
+    docker:
+      memory: 2048
+
+pipelines:
+  branches:
+    send-data-to-elastic-*:
+      - step:
+          services:
+            - docker
+          name: Build and Push Docker image
+          script:
+            - export IMAGE_NAME=interactintranets/opserver-poller:1.0.$BITBUCKET_BUILD_NUMBER
+            - docker build -t $IMAGE_NAME -f src/Opserver.Poller/Dockerfile .
+            - docker login --username $DOCKER_HUB_USERNAME --password $DOCKER_HUB_PASSWORD
+            - docker push $IMAGE_NAME
+            - echo $IMAGE_NAME
